@@ -144,17 +144,17 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 
     // Add lights
     SceneNode *padLight = createSceneNode(POINT_LIGHT);
-    padLight->position = glm::vec3(0.0, 20.0, 0.0);
+    padLight->position = glm::vec3(-5.0, 5.0, 20.0);
     padLight->lightColor = glm::vec3(1.0, 0.0, 0.0);
     padNode->children.push_back(padLight);
     lightSources[padLight->lightNodeID] = padLight;
     SceneNode *padLight2 = createSceneNode(POINT_LIGHT);
-    padLight2->position = glm::vec3(0.0, 20.0, 5.0);
+    padLight2->position = glm::vec3(0.0, 5.0, 20.0);
     padLight2->lightColor = glm::vec3(0.0, 1.0, 0.0);
     padNode->children.push_back(padLight2);
     lightSources[padLight2->lightNodeID] = padLight2;
     SceneNode *padLight3 = createSceneNode(POINT_LIGHT);
-    padLight3->position = glm::vec3(0.0, 20.0, 10.0);
+    padLight3->position = glm::vec3(5.0, 5.0, 20.0);
     padLight3->lightColor = glm::vec3(0.0, 0.0, 1.0);
     padNode->children.push_back(padLight3);
     lightSources[padLight3->lightNodeID] = padLight3;

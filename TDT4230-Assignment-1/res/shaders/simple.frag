@@ -53,7 +53,11 @@ void main()
         if (length(frag_light) >= length(frag_ball) && dot(frag_ball, frag_light) > 0) {
             float reject_len = length(reject(frag_ball, frag_light));
             if (reject_len < BALL_RADIUS) {
-                shadow_factor = 0.75;
+                shadow_factor = 1.0;
+            } else if (reject_len < BALL_RADIUS * 1.5) {
+                // Soft shadow
+                float t = (reject_len - BALL_RADIUS) / (BALL_RADIUS * 0.5);
+                shadow_factor = mix(0.75, 0.0, t); // Linearly interpolate between 0.75 and 0
             }
         }
         light_color *= (1 - shadow_factor);
