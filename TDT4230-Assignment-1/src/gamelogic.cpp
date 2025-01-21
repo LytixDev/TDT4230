@@ -14,6 +14,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <fmt/format.h>
 #include "gamelogic.h"
+#include "fmt/core.h"
 #include "sceneGraph.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/transform.hpp>
@@ -143,19 +144,32 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 
     // Add lights
     SceneNode *padLight = createSceneNode(POINT_LIGHT);
-    padLight->position = glm::vec3(0.0, 10.0, 0.0);
+    padLight->position = glm::vec3(0.0, 20.0, 0.0);
+    padLight->lightColor = glm::vec3(1.0, 0.0, 0.0);
     padNode->children.push_back(padLight);
     lightSources[padLight->lightNodeID] = padLight;
+    SceneNode *padLight2 = createSceneNode(POINT_LIGHT);
+    padLight2->position = glm::vec3(0.0, 20.0, 5.0);
+    padLight2->lightColor = glm::vec3(0.0, 1.0, 0.0);
+    padNode->children.push_back(padLight2);
+    lightSources[padLight2->lightNodeID] = padLight2;
+    SceneNode *padLight3 = createSceneNode(POINT_LIGHT);
+    padLight3->position = glm::vec3(0.0, 20.0, 10.0);
+    padLight3->lightColor = glm::vec3(0.0, 0.0, 1.0);
+    padNode->children.push_back(padLight3);
+    lightSources[padLight3->lightNodeID] = padLight3;
 
-    SceneNode *roofLightLeft = createSceneNode(POINT_LIGHT);
-    roofLightLeft->position = glm::vec3(-80, 30, 10);
-    boxNode->children.push_back(roofLightLeft);
-    lightSources[roofLightLeft->lightNodeID] = roofLightLeft;
+    //SceneNode *roofLightLeft = createSceneNode(POINT_LIGHT);
+    //roofLightLeft->position = glm::vec3(-80, 30, 10);
+    //roofLightLeft->lightColor = glm::vec3(1.0, 0.0, 0.0);
+    //boxNode->children.push_back(roofLightLeft);
+    //lightSources[roofLightLeft->lightNodeID] = roofLightLeft;
 
-    SceneNode *roofLightRight = createSceneNode(POINT_LIGHT);
-    roofLightRight->position = glm::vec3(80, 30, 10);
-    boxNode->children.push_back(roofLightRight);
-    lightSources[roofLightRight->lightNodeID] = roofLightRight;
+    //SceneNode *roofLightRight = createSceneNode(POINT_LIGHT);
+    //roofLightRight->position = glm::vec3(80, 30, 10);
+    //roofLightRight->lightColor = glm::vec3(0.0, 1.0, 0.0);
+    //boxNode->children.push_back(roofLightRight);
+    //lightSources[roofLightRight->lightNodeID] = roofLightRight;
 
     getTimeDeltaSeconds();
 
@@ -409,11 +423,16 @@ void renderFrame(GLFWwindow* window) {
     glUniform3fv(SHADER_CAMERA_LOCATION, 1, glm::value_ptr(cameraPosition));
 
     // Pass light positions to fragment shader
-    glm::vec3 lightPositions[LIGHT_SOURCES];
     for (int i = 0; i < LIGHT_SOURCES; i++) {
-        lightPositions[i] = lightSources[i]->lightPosition;
+        SceneNode *node = lightSources[i];
+        auto prefix = fmt::format("light_sources[{}]", i);
+        // Position
+        auto location_position = shader->getUniformFromName(prefix + ".position");
+        glUniform3fv(location_position, 1, glm::value_ptr(node->lightPosition));
+        // Color
+        auto location_color = shader->getUniformFromName(prefix + ".color");
+        glUniform3fv(location_color, 1, glm::value_ptr(node->lightColor));
     }
-    glUniform3fv(7, LIGHT_SOURCES, glm::value_ptr(lightPositions[0]));
 
     // Pass ball position to fragment shader
     glUniform3fv(shader->getUniformFromName("ball_position"), 1, glm::value_ptr(ballNode->position));

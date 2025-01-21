@@ -3,23 +3,26 @@
 #define LIGHT_SOURCES 3
 #define BALL_RADIUS 3
 
+// Data structures
+struct LightSource {
+    vec3 position;
+    vec3 color;
+};
+
+// Inputs
 in layout(location = 0) vec3 normal_in;
 in layout(location = 1) vec2 texture_coordinates_in;
 in layout(location = 2) vec3 frag_pos_in;
-
-// NOTE: My vertex shader uses uniform at locations 3 and 4.
 uniform layout(location = 6) vec3 view_position;
-uniform layout(location = 7) vec3 light_positions[LIGHT_SOURCES];
+uniform LightSource light_sources[LIGHT_SOURCES];
 uniform vec3 ball_position;
 
+// Outputs
 out vec4 color;
 
 float rand(vec2 co) { return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453); }
 float dither(vec2 uv) { return (rand(uv)*2.0-1.0) / 256.0; }
-
-vec3 reject(vec3 from, vec3 onto) {
-    return from - onto*dot(from, onto)/dot(onto, onto);
-}
+vec3 reject(vec3 from, vec3 onto) { return from - onto*dot(from, onto)/dot(onto, onto); }
 
 void main()
 {
@@ -39,7 +42,8 @@ void main()
     vec3 specular = vec3(0.0, 0.0, 0.0);
     
     for (int i = 0; i < LIGHT_SOURCES; i++) {
-        vec3 light_position = light_positions[i];
+        vec3 light_position = light_sources[i].position;
+        vec3 light_color = light_sources[i].color;
 
         // Shadow calculation
         float shadow_factor = 0; // 0 means no shadow, 1 means maximum shadow
@@ -52,8 +56,6 @@ void main()
                 shadow_factor = 0.75;
             }
         }
-
-        vec3 light_color = vec3(1.0, 1.0, 1.0); // White light for now
         light_color *= (1 - shadow_factor);
 
         // PHONG

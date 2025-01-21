@@ -62,6 +62,8 @@ struct SceneNode {
 
     // Not relative to parent
     glm::vec3 lightPosition;
+
+    glm::vec3 lightColor;
 };
 
 
