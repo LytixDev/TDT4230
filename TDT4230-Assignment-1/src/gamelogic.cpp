@@ -44,7 +44,7 @@ double ballRadius = 3.0f;
 
 // These are heap allocated, because they should not be initialised at the start of the program
 sf::SoundBuffer* buffer;
-Gloom::Shader* shader;
+Gloom::Shader* shader3D;
 sf::Sound* sound;
 
 const glm::vec3 boxDimensions(180, 90, 90);
@@ -109,9 +109,9 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     glfwSetCursorPosCallback(window, mouseCallback);
 
-    shader = new Gloom::Shader();
-    shader->makeBasicShader("../res/shaders/simple.vert", "../res/shaders/simple.frag");
-    shader->activate();
+    shader3D = new Gloom::Shader();
+    shader3D->makeBasicShader("../res/shaders/simple.vert", "../res/shaders/simple.frag");
+    shader3D->activate();
 
     // Create meshes
     Mesh pad = cube(padDimensions, glm::vec2(30, 40), true);
@@ -427,15 +427,15 @@ void renderFrame(GLFWwindow* window) {
         SceneNode *node = lightSources[i];
         auto prefix = fmt::format("light_sources[{}]", i);
         // Position
-        auto location_position = shader->getUniformFromName(prefix + ".position");
+        auto location_position = shader3D->getUniformFromName(prefix + ".position");
         glUniform3fv(location_position, 1, glm::value_ptr(node->lightPosition));
         // Color
-        auto location_color = shader->getUniformFromName(prefix + ".color");
+        auto location_color = shader3D->getUniformFromName(prefix + ".color");
         glUniform3fv(location_color, 1, glm::value_ptr(node->lightColor));
     }
 
     // Pass ball position to fragment shader
-    glUniform3fv(shader->getUniformFromName("ball_position"), 1, glm::value_ptr(ballNode->position));
+    glUniform3fv(shader3D->getUniformFromName("ball_position"), 1, glm::value_ptr(ballNode->position));
 
     renderNode(rootNode);
 }
