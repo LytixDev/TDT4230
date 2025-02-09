@@ -80,10 +80,12 @@ double lastMouseY = windowHeight / 2;
 #define SHADER_CAMERA_LOCATION 6
 glm::vec3 cameraPosition = glm::vec3(0, 2, -20);
 
-#define LIGHT_SOURCES 3
+#define LIGHT_SOURCES 1
 SceneNode *lightSources[LIGHT_SOURCES];
 
 unsigned int charMapTextureID;
+unsigned int brickTextureID;
+unsigned int brickNormalID;
 
 void mouseCallback(GLFWwindow* window, double x, double y) {
     int windowWidth, windowHeight;
@@ -130,17 +132,6 @@ unsigned int imageToTexture(PNGImage image) {
 }
 
 void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
-    PNGImage charMap = loadPNGFile("../res/textures/charmap.png");
-    charMapTextureID = imageToTexture(charMap);
-
-    Mesh helloMomText = generateTextGeometryBuffer("Hello Mom !", 39.0 / 29.0, 500.0);
-    unsigned int textVAO = generateBuffer(helloMomText);
-    SceneNode *textNode = createSceneNode(GEOMETRY_2D);
-    textNode->vertexArrayObjectID = textVAO;
-    textNode->textureID = charMapTextureID;
-    textNode->VAOIndexCount = helloMomText.indices.size();
-    textNode->position  = { 0, 0, 0 };
-
     buffer = new sf::SoundBuffer();
     if (!buffer->loadFromFile("../res/Hall of the Mountain King.ogg")) {
         return;
@@ -158,7 +149,20 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     shader2D = new Gloom::Shader();
     shader2D->makeBasicShader("../res/shaders/2d.vert", "../res/shaders/2d.frag");
 
-    // Create meshes
+    brickTextureID = imageToTexture(loadPNGFile("../res/textures/Brick03_col.png"));
+    brickNormalID = imageToTexture(loadPNGFile("../res/textures/Brick03_nrm.png"));
+
+    PNGImage charMap = loadPNGFile("../res/textures/charmap.png");
+    charMapTextureID = imageToTexture(charMap);
+
+    Mesh helloMomText = generateTextGeometryBuffer("Press the left mouse button to start !", 39.0 / 29.0, 700.0);
+    unsigned int textVAO = generateBuffer(helloMomText);
+    SceneNode *textNode = createSceneNode(GEOMETRY_2D);
+    textNode->vertexArrayObjectID = textVAO;
+    textNode->textureID = charMapTextureID;
+    textNode->VAOIndexCount = helloMomText.indices.size();
+    textNode->position  = { 0, 0, 0 };
+
     Mesh pad = cube(padDimensions, glm::vec2(30, 40), true);
     Mesh box = cube(boxDimensions, glm::vec2(90), true, true);
     Mesh sphere = generateSphere(1.0, 40, 40);
@@ -170,7 +174,7 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 
     // Construct scene
     rootNode = createSceneNode(GEOMETRY);
-    boxNode  = createSceneNode(GEOMETRY);
+    boxNode  = createSceneNode(NORMAL_MAPPED);
     padNode  = createSceneNode(GEOMETRY);
     ballNode = createSceneNode(GEOMETRY);
 
@@ -181,6 +185,8 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 
     boxNode->vertexArrayObjectID  = boxVAO;
     boxNode->VAOIndexCount        = box.indices.size();
+    boxNode->textureID = brickTextureID;
+    boxNode->textureIDNormal = brickNormalID;
 
     padNode->vertexArrayObjectID  = padVAO;
     padNode->VAOIndexCount        = pad.indices.size();
@@ -192,19 +198,19 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     // Add lights
     SceneNode *padLight = createSceneNode(POINT_LIGHT);
     padLight->position = glm::vec3(-5.0, 5.0, 20.0);
-    padLight->lightColor = glm::vec3(1.0, 0.0, 0.0);
+    padLight->lightColor = glm::vec3(1.0, 1.0, 1.0);
     padNode->children.push_back(padLight);
     lightSources[padLight->lightNodeID] = padLight;
-    SceneNode *padLight2 = createSceneNode(POINT_LIGHT);
-    padLight2->position = glm::vec3(0.0, 5.0, 20.0);
-    padLight2->lightColor = glm::vec3(0.0, 1.0, 0.0);
-    padNode->children.push_back(padLight2);
-    lightSources[padLight2->lightNodeID] = padLight2;
-    SceneNode *padLight3 = createSceneNode(POINT_LIGHT);
-    padLight3->position = glm::vec3(5.0, 5.0, 20.0);
-    padLight3->lightColor = glm::vec3(0.0, 0.0, 1.0);
-    padNode->children.push_back(padLight3);
-    lightSources[padLight3->lightNodeID] = padLight3;
+    //SceneNode *padLight2 = createSceneNode(POINT_LIGHT);
+    //padLight2->position = glm::vec3(0.0, 5.0, 20.0);
+    //padLight2->lightColor = glm::vec3(0.0, 1.0, 0.0);
+    //padNode->children.push_back(padLight2);
+    //lightSources[padLight2->lightNodeID] = padLight2;
+    //SceneNode *padLight3 = createSceneNode(POINT_LIGHT);
+    //padLight3->position = glm::vec3(5.0, 5.0, 20.0);
+    //padLight3->lightColor = glm::vec3(0.0, 0.0, 1.0);
+    //padNode->children.push_back(padLight3);
+    //lightSources[padLight3->lightNodeID] = padLight3;
 
     //SceneNode *roofLightLeft = createSceneNode(POINT_LIGHT);
     //roofLightLeft->position = glm::vec3(-80, 30, 10);
@@ -448,7 +454,18 @@ void renderNode3D(SceneNode* node) {
     glUniformMatrix4fv(4, 1, GL_FALSE, glm::value_ptr(node->modelMatrix));
     glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(node->normalMatrix));
 
+    /* Set normal mapped flag */
+    if (node->nodeType == NORMAL_MAPPED) {
+        glUniform1i(7, 1);
+    } else {
+        glUniform1i(7, 0);
+    }
+
     switch(node->nodeType) {
+        case NORMAL_MAPPED:
+            glBindTextureUnit(0, node->textureID);
+            glBindTextureUnit(1, node->textureIDNormal);
+            /* Intentional fallthrough */
         case GEOMETRY:
             if(node->vertexArrayObjectID != -1) {
                 glBindVertexArray(node->vertexArrayObjectID);
@@ -487,13 +504,14 @@ void render3D(SceneNode *root) {
     // Pass ball position to fragment shader
     glUniform3fv(shader3D->getUniformFromName("ball_position"), 1, glm::value_ptr(ballNode->position));
 
+
     renderNode3D(root);
 }
 
 void renderNode2D(SceneNode* node) {
     switch(node->nodeType) {
         case GEOMETRY_2D: {
-            if (node->vertexArrayObjectID != -1) {
+            if ((!hasStarted || hasLost) && node->vertexArrayObjectID != -1) {
                 glBindVertexArray(node->vertexArrayObjectID);
                 glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
             }

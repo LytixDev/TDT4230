@@ -13,9 +13,15 @@ struct LightSource {
 in layout(location = 0) vec3 normal_in;
 in layout(location = 1) vec2 texture_coordinates_in;
 in layout(location = 2) vec3 frag_pos_in;
+in layout(location = 3) mat3 TBN_in;
 uniform layout(location = 6) vec3 view_position;
+uniform layout(location = 7) int use_texture_and_normal;
 uniform LightSource light_sources[LIGHT_SOURCES];
 uniform vec3 ball_position;
+
+
+layout(binding = 0) uniform sampler2D brick_sampler;
+layout(binding = 1) uniform sampler2D brick_normal_sampler;
 
 // Outputs
 out vec4 color;
@@ -27,10 +33,22 @@ vec3 reject(vec3 from, vec3 onto) { return from - onto*dot(from, onto)/dot(onto,
 void main()
 {
     vec3 normal = normalize(normal_in);
-    color = vec4(0.5 * normal + 0.5, 1.0);
+    if (use_texture_and_normal == 1) {
+        color = texture(brick_sampler, texture_coordinates_in);
+        normal = TBN_in * (texture(brick_normal_sampler, texture_coordinates_in).xyz * 2 - 1);
+
+        // Debug normal map
+        //vec3 a = TBN_in * (texture(brick_normal_sampler, texture_coordinates_in).xyz * 2 - 1);
+        //color = vec4(a.r, a.g, a.b, 1.0);
+        //return;
+
+    } else {
+        //color = vec4(0.5 * normal + 0.5, 1.0);
+        color = vec4(0.6, 0.6, 0.6, 1.0);
+    }
 
     // Ambient
-    vec3 ambient_light = vec3(0.05, 0.05, 0.05);
+    vec3 ambient_light = vec3(0.08, 0.08, 0.08);
     vec3 ambient = ambient_light;// * color.rgb;
 
     // Attenuation
@@ -81,5 +99,5 @@ void main()
     }
 
     vec3 phong = ambient + diffuse + specular;
-    color = vec4(phong, 1.0) + dither(texture_coordinates_in);
+    color = (vec4(phong, 1.0) + dither(texture_coordinates_in)) * color;
 }

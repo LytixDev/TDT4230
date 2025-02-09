@@ -14,7 +14,11 @@
 #include <fstream>
 
 enum SceneNodeType {
-	GEOMETRY, GEOMETRY_2D, POINT_LIGHT, SPOT_LIGHT
+	GEOMETRY,
+    GEOMETRY_2D, 
+    NORMAL_MAPPED, // Normal mapped 3D geometry
+    POINT_LIGHT,
+    SPOT_LIGHT
 };
 
 struct SceneNode {
@@ -65,7 +69,7 @@ struct SceneNode {
 
     glm::vec3 lightColor;
 
-    // The texture for this node. Currently only used for Nodes of type GEOMETRY_2D
+    // The texture for this node
     unsigned int textureID;
 
     // Normal map textureID
