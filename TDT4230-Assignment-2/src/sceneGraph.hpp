@@ -72,8 +72,11 @@ struct SceneNode {
     // The texture for this node
     unsigned int textureID;
 
-    // Normal map textureID
-    unsigned int textureIDNormal;
+    // Normal map 
+    unsigned int textureNormalID;
+
+    // Roughness texture
+    unsigned int roughnessID;
 };
 
 

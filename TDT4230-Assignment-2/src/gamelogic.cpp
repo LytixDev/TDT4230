@@ -86,6 +86,7 @@ SceneNode *lightSources[LIGHT_SOURCES];
 unsigned int charMapTextureID;
 unsigned int brickTextureID;
 unsigned int brickNormalID;
+unsigned int brickRoughnessID;
 
 void mouseCallback(GLFWwindow* window, double x, double y) {
     int windowWidth, windowHeight;
@@ -151,6 +152,7 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 
     brickTextureID = imageToTexture(loadPNGFile("../res/textures/Brick03_col.png"));
     brickNormalID = imageToTexture(loadPNGFile("../res/textures/Brick03_nrm.png"));
+    brickRoughnessID = imageToTexture(loadPNGFile("../res/textures/Brick03_rgh.png"));
 
     PNGImage charMap = loadPNGFile("../res/textures/charmap.png");
     charMapTextureID = imageToTexture(charMap);
@@ -186,7 +188,8 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     boxNode->vertexArrayObjectID  = boxVAO;
     boxNode->VAOIndexCount        = box.indices.size();
     boxNode->textureID = brickTextureID;
-    boxNode->textureIDNormal = brickNormalID;
+    boxNode->textureNormalID = brickNormalID;
+    boxNode->roughnessID = brickRoughnessID;
 
     padNode->vertexArrayObjectID  = padVAO;
     padNode->VAOIndexCount        = pad.indices.size();
@@ -464,7 +467,8 @@ void renderNode3D(SceneNode* node) {
     switch(node->nodeType) {
         case NORMAL_MAPPED:
             glBindTextureUnit(0, node->textureID);
-            glBindTextureUnit(1, node->textureIDNormal);
+            glBindTextureUnit(1, node->textureNormalID);
+            glBindTextureUnit(2, node->roughnessID);
             /* Intentional fallthrough */
         case GEOMETRY:
             if(node->vertexArrayObjectID != -1) {
@@ -535,6 +539,10 @@ void render2D(SceneNode *root) {
                                                   1.0f); // Far plane
     glUniformMatrix4fv(3, 1, GL_FALSE, glm::value_ptr(orthographicProjection));
 
+    /* 
+     * NOTE: We only draw text for the 2D part of rendering right now, so we can just set the 
+     * texture here and not dynamically in the scene node switch.
+     */
     glBindTextureUnit(0, charMapTextureID);
     renderNode2D(root);
 }

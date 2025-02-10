@@ -22,6 +22,7 @@ uniform vec3 ball_position;
 
 layout(binding = 0) uniform sampler2D brick_sampler;
 layout(binding = 1) uniform sampler2D brick_normal_sampler;
+layout(binding = 2) uniform sampler2D brick_roughness_sampler;
 
 // Outputs
 out vec4 color;
@@ -33,11 +34,13 @@ vec3 reject(vec3 from, vec3 onto) { return from - onto*dot(from, onto)/dot(onto,
 void main()
 {
     vec3 normal = normalize(normal_in);
+    float roughness = 0.5;
     if (use_texture_and_normal == 1) {
         color = texture(brick_sampler, texture_coordinates_in);
         normal = TBN_in * (texture(brick_normal_sampler, texture_coordinates_in).xyz * 2 - 1);
+        roughness = texture(brick_roughness_sampler, texture_coordinates_in).x;
 
-        // Debug normal map
+        // Uncomment to debug normal map
         //vec3 a = TBN_in * (texture(brick_normal_sampler, texture_coordinates_in).xyz * 2 - 1);
         //color = vec4(a.r, a.g, a.b, 1.0);
         //return;
@@ -93,7 +96,7 @@ void main()
         // Specular
         vec3 reflect_dir = reflect(-light_dir, normal);
         vec3 surface_eye = normalize(view_position - frag_pos_in);
-        float shininess = 32.0;
+        float shininess = 5 / (roughness * roughness); // 32.0;
         float spec_intensity = pow(max(dot(reflect_dir, surface_eye), 0.0), shininess);
         specular += L * spec_intensity * light_color;
     }
